@@ -33,11 +33,16 @@ type Shareholder = {
 
 const Dashboard: React.FC = () => {
   const [shareholders, setShareholders] = useState<Shareholder[]>([]);
+  const [updateShareholders, setUpdateShareholders] = useState<Shareholder>({} as Shareholder);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [cpf, setCpf] = useState("");
   const [birthdate, setBirthdate] = useState("");
   const [salary, setSalary] = useState("");
+  const [updateName, setUpdateName] = useState("");
+  const [updateEmail, setUpdateEmail] = useState("");
+  const [updateBirthdate, setUpdateBirthdate] = useState("");
+  const [updateSalary, setUpdateSalary] = useState("");
 
   const [modalIsOpen, setIsOpen] = React.useState(false);
 
@@ -52,13 +57,12 @@ const Dashboard: React.FC = () => {
   }
 
   useEffect(() => {
-    async function loadShareholders(): Promise<Shareholder[] | void> {
-      api.get("/shareholders").then((response) => {
-        setShareholders(response.data);
-      });
+    const loadShareholders = async () => { 
+      const {data} = await api.get("/shareholders");
+        setShareholders(data);
     }
-    loadShareholders();
-  }, [shareholders]);
+    loadShareholders()
+  }, []);
 
   async function handleSubmit(e: any) {
     e.preventDefault();
@@ -94,30 +98,19 @@ const Dashboard: React.FC = () => {
     }
   }
 
-  async function handleUpdate(id: any) {
-
-    
-    const data = {
-      name,
-      email,
-      cpf,
-      birthdate,
-      salary,
-    };
-
-  
+  async function handleUpdate(shareholder: Shareholder|any) {
     try {
-
-      const response = await api.put(`shareholders/${id}`, data);
+      const updatedSharedholder = await api.put(`shareholders/${updateShareholders.id}`, {
+        ...updateShareholders, ...shareholder, });
+     
+        const updatedShareholders = shareholders.map((s) => s.id !== updatedSharedholder.data.id ? s : updatedSharedholder.data,)
+     
+        setShareholders(updatedShareholders)
     } catch (err) {
       alert("Erro no cadastro tente novamente.");
     }
-    setName("");
-    setEmail("");
-    setCpf("");
-    setBirthdate("");
-    setSalary("");
 
+    
   }
 
   return (
@@ -216,42 +209,37 @@ const Dashboard: React.FC = () => {
       >
         <ModalProvider>
           <form onSubmit={handleUpdate}>
-            {shareholders.map((shareholder) => (
-              <tr key={shareholder.id}>
-                <span>{shareholder.name}</span>
-                <input
-                  name="name"
-                  value={shareholder.name}
-                  onChange={(e) => setName(e.target.value)}
-                />
-                <span>Email</span>
-                <input
-                  name="email"
-                  type="email"
-                  placeholder="exemplo@gmail.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-                <span>Data de Nascimento</span>
-                <input
-                  name="birthdate"
-                  type="date"
-                  placeholder="30/01/1900"
-                  value={birthdate}
-                  onChange={(e) => setBirthdate(e.target.value)}
-                />
-                <span>Salário</span>
-                <input
-                  name="salary"
-                  type="salary"
-                  placeholder=""
-                  value={salary}
-                  onChange={(e) => setSalary(e.target.value)}
-                />
-
-                <button type="submit">Atualizar</button>
-              </tr>
-            ))}
+            <span>Nome</span>
+            <input
+              name="name"
+              value={updateName}
+              onChange={(e) => setUpdateName(e.target.value)}
+            />
+            <span>Email</span>
+            <input
+              name="email"
+              type="email"
+              placeholder="exemplo@gmail.com"
+              value={updateEmail}
+              onChange={(e) => setUpdateEmail(e.target.value)}
+            />
+            <span>Data de Nascimento</span>
+            <input
+              name="birthdate"
+              type="date"
+              placeholder="30/01/1900"
+              value={updateBirthdate}
+              onChange={(e) => setUpdateBirthdate(e.target.value)}
+            />
+            <span>Salário</span>
+            <input
+              name="salary"
+              type="salary"
+              placeholder=""
+              value={updateSalary}
+              onChange={(e) => setUpdateSalary(e.target.value)}
+            />
+            <button type="submit">Atualizar</button>
           </form>
         </ModalProvider>
       </Modal>
